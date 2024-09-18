@@ -4,17 +4,28 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"unicode"
 )
 
-func countChars(f *os.File) {
+func countChars(f *os.File) map[string]int {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanBytes)
-	arr := []int{}
+	occ := map[string]int{}
 
 	for scanner.Scan() {
-		// append(arr, )
+		a := string(scanner.Bytes())
+		if unicode.IsLetter(rune(a[0])) {
+			if val, ok := occ[a]; ok {
+					occ[a] = val + 1
+			} else {
+					occ[a] = 1
+			}
+		}
 	}
+
+	return occ
 }
+
 
 func main() {
 
