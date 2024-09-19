@@ -7,23 +7,67 @@ import (
 	"unicode"
 )
 
+type wNode struct {
+	weight int64
+}
+
+type cNode struct {
+	char rune
+}
+
+type HuffTree interface {
+	wNode
+	cNode
+	cNode
+}
+
 func countChars(f *os.File) map[string]int {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanBytes)
-	occ := map[string]int{}
+	occ := make(map[string]int)
 
 	for scanner.Scan() {
 		a := string(scanner.Bytes())
 		if unicode.IsLetter(rune(a[0])) {
 			if val, ok := occ[a]; ok {
-					occ[a] = val + 1
+				occ[a] = val + 1
 			} else {
-					occ[a] = 1
+				occ[a] = 1
 			}
 		}
 	}
 
 	return occ
+}
+
+func generateBinaryTree(occ map[string]int) (int, int) {
+
+	smallest, secondSmallest := 0, 0
+	
+	for _, v := range occ {
+
+		if smallest == 0 {
+			smallest = v
+		} else if secondSmallest == 0 {
+			secondSmallest = v
+			if v < smallest {
+				secondSmallest = smallest
+				smallest = v
+				continue
+			}
+		} else {
+			if v < smallest {
+				secondSmallest = smallest
+				smallest = v
+				continue
+			} else if v < secondSmallest {
+				secondSmallest = v
+			}
+		}
+
+	}
+
+	return smallest, secondSmallest
 }
 
 
