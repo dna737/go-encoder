@@ -7,18 +7,10 @@ import (
 	"unicode"
 )
 
-type wNode struct {
-	weight int64
-}
-
-type cNode struct {
-	char rune
-}
-
-type HuffTree interface {
-	wNode
-	cNode
-	cNode
+type HuffTree struct {
+	weight int
+	left string
+	right string
 }
 
 func countChars(f *os.File) map[string]int {
@@ -40,51 +32,75 @@ func countChars(f *os.File) map[string]int {
 	return occ
 }
 
-func generateBinaryTree(occ map[string]int) (int, int) {
+func compGen(occ map[string]int) []string {
+	occCopy := occ
+	var result []string
+
+	for len(occCopy) > 0 {
+		_, k1, k2 := generateNodes(occCopy)
+		fmt.Println(k1, k2)
+		delete(occCopy, k1)
+		delete(occCopy, k2)
+
+		result = append(result, k1, k2)
+	}
+
+	return result
+}
+
+func generateNodes(occ map[string]int) (HuffTree, string, string) {
 
 	smallest, secondSmallest := 0, 0
+	var smallestChar, secondSmallestChar string
 	
-	for _, v := range occ {
+	for k, v := range occ {
 
 		if smallest == 0 {
 			smallest = v
+			smallestChar = k
 		} else if secondSmallest == 0 {
 			secondSmallest = v
+			secondSmallestChar = k
 			if v < smallest {
 				secondSmallest = smallest
+				secondSmallestChar = smallestChar
 				smallest = v
+				smallestChar = k
 				continue
 			}
 		} else {
 			if v < smallest {
 				secondSmallest = smallest
+				secondSmallestChar = smallestChar
 				smallest = v
+				smallestChar = k
 				continue
 			} else if v < secondSmallest {
 				secondSmallest = v
+				secondSmallestChar = k
 			}
 		}
-
 	}
 
-	return smallest, secondSmallest
+	a := HuffTree{
+		weight: (smallest + secondSmallest),
+		left:   smallestChar,
+		right:  secondSmallestChar,
+	}
+
+	fmt.Println(a)
+
+	return a, smallestChar, secondSmallestChar
 }
 
+func main(){
 
-func main() {
-
-	if len(os.Args[1:]) != 1 {
-		fmt.Println("Please provide a valid path to the file name as an option.")
-		os.Exit(1)
-	}
-	
 	filename := os.Args[1]
 	f, err := os.Open(filename)
-
 	if err != nil {
 		fmt.Println("Please provide a valid path to the file name as an option.")
 	}
 	
 	countChars(f)
-	
+
 }

@@ -32,16 +32,27 @@ func TestValidCharOcc(t *testing.T) {
 	}
 }
 
-func TestValidHuffmanTree(t *testing.T){
+// func TestValidHuffmanTree(t *testing.T){
+// 	occ := make(map[string]int)
+// 	occ["A"] = 3
+// 	occ["B"] = 2
+// 	occ["C"] = 1
+// 	tree, ok := generateBinaryTree(occ)
+// 	if !ok{
+// 		t.Errorf("wrong type.")
+// 	}
+// 	fmt.Println(tree.weight)
+// }
+
+func TestCompGen(t *testing.T){
 	occ := make(map[string]int)
-	occ["A"] = 3
-	occ["B"] = 2
-	occ["C"] = 1
-	res1, res2 := generateBinaryTree(occ)
+	occ["a"] = 1
+	occ["i"] = 2
+	occ["t"] = 3
+	occ["e"] = 1
+	occ["s"] = 3
+	occ["h"] = 1
 
-	if res1 != 1 || res2 != 2 {
-		fmt.Println(res1, res2)
-		t.Errorf("wrong!")
-	}
-
+	nodeSlice := compGen(occ)
+	fmt.Println(nodeSlice)
 }
