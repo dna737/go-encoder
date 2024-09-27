@@ -41,7 +41,6 @@ func compGen(occ map[string]int) ([]HuffNode) {
 
 	for len(occCopy) > 0 {
 		n, k1, k2 := generateNodes(occCopy)
-		fmt.Println(k1, k2)
 		delete(occCopy, k1)
 		delete(occCopy, k2)
 
@@ -68,16 +67,44 @@ func buildTree(nodes []HuffNode) HuffNode {
 
 			newNode := HuffNode{
 				weight: nodes[i].weight + secondVal,
-				left: &nodes[i],
-				right: &nodes[i + 1],
+				left: &HuffNode{
+					value: nodes[i].value,
+					weight: nodes[i].weight,
+					isLeaf: nodes[i].isLeaf,
+					left: nodes[i].left,
+					right: nodes[i].right,
+				},
+				right: &HuffNode{
+					value: nodes[i + 1].value,
+					weight: nodes[i + 1].weight,
+					isLeaf: nodes[i + 1].isLeaf,
+					left: nodes[i + 1].left,
+					right: nodes[i + 1].right,
+				},
 				isLeaf: false,
 			}
-			nodes = append(append(nodes[:i],nodes[i + 2:]...), newNode)
-			fmt.Println(nodes)
+
+			if len(nodes) == 2 {
+				nodes = append(nodes[:i], newNode)
+			} else {
+				nodes = append(nodes[:i],nodes[i + 2:]...)
+				nodes = append(nodes, newNode)
+			}
 		}
 	}
 
 	return nodes[0]
+}
+
+func printValues(node HuffNode, prefix string, table map[string]string) map[string]string {
+	if node.isLeaf {
+		fmt.Println(node.value, node.weight)
+		table[node.value] = prefix
+	} else {
+		printValues(*node.left, prefix + "0", table)
+		printValues(*node.right, prefix + "1", table)
+	}
+	return table
 }
 
 //Generates a node from the two smallest values in the map.
@@ -117,12 +144,10 @@ func generateNodes(occ map[string]int) (HuffNode, string, string) {
 
 	a := HuffNode{
 		weight: (smallest + secondSmallest),
-		left:   &HuffNode{value: smallestChar},
-		right:   &HuffNode{value: secondSmallestChar},
-		isLeaf: true,
+		left:   &HuffNode{value: smallestChar, weight: smallest, isLeaf: true},
+		right:   &HuffNode{value: secondSmallestChar, weight: secondSmallest, isLeaf: true},
+		isLeaf: false,
 	}
-
-	fmt.Println(a)
 
 	return a, smallestChar, secondSmallestChar
 }

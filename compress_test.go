@@ -67,8 +67,11 @@ func TestBuildTree(t *testing.T){
 	occ["h"] = 1
 
 	nodeSlice := compGen(occ)
+	table := make(map[string]string)
 
-	result := (buildTree(nodeSlice))
+	finalNode := buildTree(nodeSlice)
 
-	fmt.Print("left:", result.left.weight)
+	result := printValues(finalNode, "", table)
+
+	fmt.Println(result)
 }
