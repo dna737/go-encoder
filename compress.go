@@ -96,13 +96,12 @@ func buildTree(nodes []HuffNode) HuffNode {
 	return nodes[0]
 }
 
-func printValues(node HuffNode, prefix string, table map[string]string) map[string]string {
+func getPrefixTable(node HuffNode, prefix string, table map[string]string) map[string]string {
 	if node.isLeaf {
-		fmt.Println(node.value, node.weight)
 		table[node.value] = prefix
 	} else {
-		printValues(*node.left, prefix + "0", table)
-		printValues(*node.right, prefix + "1", table)
+		getPrefixTable(*node.left, prefix + "0", table)
+		getPrefixTable(*node.right, prefix + "1", table)
 	}
 	return table
 }
@@ -152,13 +151,28 @@ func generateNodes(occ map[string]int) (HuffNode, string, string) {
 	return a, smallestChar, secondSmallestChar
 }
 
+func usage() {
+	fmt.Println(
+	`
+		Usage:
+			./compress-go [input-filename] [output-filename]
+	`)
+}
+
 func main(){
 
+	if len(os.Args) < 2 {
+		usage()
+		os.Exit(1)
+	}
+	
 	filename := os.Args[1]
 	f, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Please provide a valid path to the file name as an option.")
 	}
-	
-	countChars(f)
+
+	table := getPrefixTable(buildTree(compGen(countChars(f))), "", make(map[string]string))
+
+	fmt.Println(table)
 }
