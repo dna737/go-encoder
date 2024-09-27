@@ -56,3 +56,19 @@ func TestCompGen(t *testing.T){
 	nodeSlice := compGen(occ)
 	fmt.Println(nodeSlice)
 }
+
+func TestBuildTree(t *testing.T){
+	occ := make(map[string]int)
+	occ["a"] = 1
+	occ["i"] = 2
+	occ["t"] = 3
+	occ["e"] = 1
+	occ["s"] = 3
+	occ["h"] = 1
+
+	nodeSlice := compGen(occ)
+
+	result := (buildTree(nodeSlice))
+
+	fmt.Print("left:", result.left.weight)
+}

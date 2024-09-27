@@ -9,8 +9,9 @@ import (
 
 type HuffNode struct {
 	weight int
-	left string
-	right string
+	value string
+	left *HuffNode
+	right *HuffNode
 	isLeaf bool
 }
 
@@ -33,7 +34,7 @@ func countChars(f *os.File) map[string]int {
 	return occ
 }
 
-func compGen(occ map[string]int) ([]string, []HuffNode) {
+func compGen(occ map[string]int) ([]HuffNode) {
 	occCopy := occ
 	var result []string
 	var nodes []HuffNode
@@ -48,36 +49,38 @@ func compGen(occ map[string]int) ([]string, []HuffNode) {
 		nodes = append(nodes, n)
 	}
 
-	return result, nodes
+	return nodes
 }
 
 func buildTree(nodes []HuffNode) HuffNode {
-	var result HuffNode
 
 	//Nodes are in increasing order of freq, and will form pairs first.
 	for len(nodes) != 1 {
-		for i, n := range nodes {
+
+		for i := 0; i < len(nodes); i++ {
 			var secondVal int
 
 			if i + 1 == len(nodes) {
-				//No second node
-				secondVal = 0
+				continue //Single nodes are left alone.
 			} else {
 				secondVal = nodes[i + 1].weight
 			}
 
 			newNode := HuffNode{
-				weight: n.weight + secondVal,
-				left: "",
-				right: "",
+				weight: nodes[i].weight + secondVal,
+				left: &nodes[i],
+				right: &nodes[i + 1],
 				isLeaf: false,
 			}
-
-			// nodes
+			nodes = append(append(nodes[:i],nodes[i + 2:]...), newNode)
+			fmt.Println(nodes)
 		}
 	}
+
+	return nodes[0]
 }
 
+//Generates a node from the two smallest values in the map.
 func generateNodes(occ map[string]int) (HuffNode, string, string) {
 
 	smallest, secondSmallest := 0, 0
@@ -114,8 +117,8 @@ func generateNodes(occ map[string]int) (HuffNode, string, string) {
 
 	a := HuffNode{
 		weight: (smallest + secondSmallest),
-		left:   smallestChar,
-		right:  secondSmallestChar,
+		left:   &HuffNode{value: smallestChar},
+		right:   &HuffNode{value: secondSmallestChar},
 		isLeaf: true,
 	}
 
