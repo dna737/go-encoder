@@ -159,9 +159,26 @@ func usage() {
 	`)
 }
 
+func generateCompressedFile(outputFile string, table map[string]string) {
+
+	file, err := os.Create(outputFile)
+	if err != nil {
+		panic(err)
+	}
+
+	// Starting header, prefix table, and ending header.	
+	file.WriteString("#START#\n")
+	for k, v := range table {
+		file.WriteString(k + "\t" + v + "\n")
+	}
+	file.WriteString("#END#\n")
+
+	defer file.Close()
+}
+
 func main(){
 
-	if len(os.Args) < 2 {
+	if len(os.Args) < 3 {
 		usage()
 		os.Exit(1)
 	}
@@ -174,5 +191,9 @@ func main(){
 
 	table := getPrefixTable(buildTree(compGen(countChars(f))), "", make(map[string]string))
 
-	fmt.Println(table)
+	defer f.Close()
+
+	outputFile := os.Args[2]
+
+	generateCompressedFile(outputFile, table)
 }
