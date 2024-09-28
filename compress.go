@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"unicode"
 )
 
 type HuffNode struct {
@@ -22,12 +21,10 @@ func countChars(f *os.File) map[string]int {
 
 	for scanner.Scan() {
 		a := string(scanner.Bytes())
-		if unicode.IsLetter(rune(a[0])) {
-			if val, ok := occ[a]; ok {
-				occ[a] = val + 1
-			} else {
-				occ[a] = 1
-			}
+		if val, ok := occ[a]; ok {
+			occ[a] = val + 1
+		} else {
+			occ[a] = 1
 		}
 	}
 
@@ -172,6 +169,18 @@ func generateCompressedFile(outputFile string, table map[string]string) {
 		file.WriteString(k + "\t" + v + "\n")
 	}
 	file.WriteString("#END#\n")
+
+	f, err2 := os.Open(outputFile)	
+	if err2 != nil {
+		fmt.Println("Failed to open file (step 2).")
+	}
+
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanBytes)
+
+	for scanner.Scan() {
+		file.Write([]byte(table[string(scanner.Bytes())]))
+	}
 
 	defer file.Close()
 }
