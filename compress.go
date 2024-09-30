@@ -28,6 +28,7 @@ func countChars(f *os.File) map[string]int {
 		}
 	}
 
+	fmt.Println(occ)
 	return occ
 }
 
@@ -156,7 +157,7 @@ func usage() {
 	`)
 }
 
-func generateCompressedFile(outputFile string, table map[string]string) {
+func generateCompressedFile(outputFile string, table map[string]string, inputFile string) {
 
 	file, err := os.Create(outputFile)
 	if err != nil {
@@ -164,17 +165,52 @@ func generateCompressedFile(outputFile string, table map[string]string) {
 	}
 
 	// Starting header, prefix table, and ending header.	
-	file.WriteString("#START#\n")
-	for k, v := range table {
-		file.WriteString(k + "\t" + v + "\n")
-	}
-	file.WriteString("#END#\n")
 
-	f, err2 := os.Open(outputFile)	
+	writer := bufio.NewWriter(file)
+	writer.WriteString("#START#\n")
+	for k, v := range table {
+		writer.WriteString(k + "\t" + v + "\n")
+	}
+	writer.WriteString("#END#\n")
+
+	f, err2 := os.Open(inputFile)	
 	if err2 != nil {
 		fmt.Println("Failed to open file (step 2).")
 	}
 
+	buffer := byte(0)
+	bitCount := 0
+
+	reader := bufio.NewReader(f)
+
+	for {
+		b, err := reader.ReadByte()
+		if err != nil {
+			break
+		}
+
+		c, exists := table[string(b)]
+		if !exists {
+			fmt.Println("Error: Character not found in table.", string(b))
+			continue
+		}
+
+		//Going over the bits of the current character.
+		for _, bit := range c {
+			buffer <<= 1
+			if bit == '1' {
+				buffer |= 1
+			}
+			bitCount++
+
+			if bitCount == 8 {
+				writer.WriteByte(buffer)
+				buffer = 0
+				bitCount = 0
+			}
+		}
+	}
+	
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanBytes)
 
@@ -199,10 +235,7 @@ func main(){
 	}
 
 	table := getPrefixTable(buildTree(compGen(countChars(f))), "", make(map[string]string))
-
-	defer f.Close()
-
 	outputFile := os.Args[2]
-
-	generateCompressedFile(outputFile, table)
+	generateCompressedFile(outputFile, table, filename)
+	defer f.Close()
 }
