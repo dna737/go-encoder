@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -157,6 +158,29 @@ func usage() {
 	`)
 }
 
+func extractBitstrings(table map[string]string, f io.Reader) []string {
+	var result []string
+
+	reader := bufio.NewReader(f)
+
+	for {
+		b, err := reader.ReadByte()
+		if err != nil {
+			break
+		}
+
+		c, exists := table[string(b)]
+		if !exists {
+			fmt.Println("Error: Character not found in table.", string(b))
+			continue
+		}
+
+		result = append(result, c)
+	}
+
+	return result	
+}
+
 func generateCompressedFile(outputFile string, table map[string]string, inputFile string) {
 
 	file, err := os.Create(outputFile)
@@ -180,42 +204,36 @@ func generateCompressedFile(outputFile string, table map[string]string, inputFil
 
 	buffer := byte(0)
 	bitCount := 0
+	bitStrings := extractBitstrings(table, f)
 
-	reader := bufio.NewReader(f)
+	//Going over the bits of the current character.
+    for _, bitString := range bitStrings {
+        for _, bit := range bitString {
+            buffer <<= 1
+            if bit == '1' {
+                buffer |= 1
+            }
+            bitCount++
 
-	for {
-		b, err := reader.ReadByte()
-		if err != nil {
-			break
-		}
+            if bitCount == 8 {
+                fmt.Printf("Writing byte: %08b\n", buffer) // Debugging statement
+                writer.WriteByte(buffer)
+                buffer = 0
+                bitCount = 0
+            }
+        }
+    }
 
-		c, exists := table[string(b)]
-		if !exists {
-			fmt.Println("Error: Character not found in table.", string(b))
-			continue
-		}
+    // Write remaining bits in the buffer
+    if bitCount > 0 {
+        buffer <<= (8 - bitCount)
+		fmt.Printf("Writing byte: %08b\n", buffer) // Debugging statement
+        writer.WriteByte(buffer)
+    }
 
-		//Going over the bits of the current character.
-		for _, bit := range c {
-			buffer <<= 1
-			if bit == '1' {
-				buffer |= 1
-			}
-			bitCount++
-
-			if bitCount == 8 {
-				writer.WriteByte(buffer)
-				buffer = 0
-				bitCount = 0
-			}
-		}
-	}
-	
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanBytes)
-
-	for scanner.Scan() {
-		file.Write([]byte(table[string(scanner.Bytes())]))
+	err = writer.Flush()
+	if err != nil {
+	    panic(err)
 	}
 
 	defer file.Close()
